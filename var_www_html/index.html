@@ -1,0 +1,38 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>薫製コントローラ</title>
+	</head>
+	<body>
+		<center>
+			<img src="http://10.247.82.78:8080/?action=stream"
+				alt="video"
+				border="1"
+				width="300" height="200">
+			<br>
+			<br>
+			<form action="/cgi-bin/fire.py" method="get">
+				<input type="hidden" name="Fire" value="10" >
+				<input type="submit" style="background:url(start10.png);width:160px;height:55px;border:0px solid;" value="">
+			</form>
+			<form action="/cgi-bin/fire.py" method="get">
+				<input type="hidden" name="Fire" value="15">
+				<input type="submit" style="background:url(start15.png);width:160px;height:55px;border:0px solid;" value="">
+			</form>
+			<form action="/cgi-bin/fire.py" method="get">
+				<input type="hidden" name="Fire" value="20">
+				<input type="submit" style="background:url(start20.png);width:160px;height:55px;border:0px solid;" value="">
+			</form>
+			<br>
+			<form action="/cgi-bin/fire.py" method="get">
+				<input type="hidden" name="Fire" value="off">
+				<input type="submit" style="background:url(stop.png);width:160px;height:55px;border:0px solid;" value="">
+			</form>
+		</center>
+	</body>
+</html>
+
+
