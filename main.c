@@ -67,8 +67,8 @@ void post_msg(char *string)
 static int	current_pos = 0;
 static int	target_pos = 0;
 #define	POS_OFF	0
-#define	POS_LOW	5
-#define	POS_MID	7
+#define	POS_LOW	4
+#define	POS_MID	6
 #define	POS_MAX	10
 
 static int	current_thermo = 0;
@@ -87,6 +87,9 @@ void *thread_gpio(void *ptr)
 	while (1) {
 		// update position
 		current = get_pos();
+		if (prev != current) {
+			printf("current %d%d\n", current / 2, current %2);
+		}
 		vector = enc_table[prev][current];
 		if (vector != 0) {
 			current_pos += vector;
@@ -116,7 +119,7 @@ void *thread_gpio(void *ptr)
 			digitalWrite(20, 1);
 			digitalWrite(21, 0);
 		}
-		delay(100);
+		delay(10);
 	}
 
 	return;
@@ -139,9 +142,17 @@ void StateFuncInit(char *ch)
 	char *param = &ch[0];
 	char *val = strchr(ch, '=');
 
-	printf("StateFuncInit:%s\n", ch);
+	if (*param != 'C') {
+		printf("StateFuncInit:%s\n", ch);
+	}
 
 	switch (*param) {
+	case 'A':	// Adjust
+		if (val != 0) {
+			val++;
+			current_pos += atoi(val);
+		}
+		break;
 	case 'E':	// Entry/Exit
 		if (strcmp(param, "Entry") == 0) {
 		}
@@ -178,7 +189,9 @@ void StateFuncBoot(char *ch)
 
 	struct timeval	tv;
 
-	printf("StateFuncBoot:%s\n", ch);
+	if (*param != 'C') {
+		printf("StateFuncInit:%s\n", ch);
+	}
 
 	switch (*param) {
 	case 'E':	// Entry/Exit
@@ -201,7 +214,7 @@ void StateFuncBoot(char *ch)
 	case 'T':	// Thermo
 		if (val != 0) {
 			val++;
-			if (atoi(val) == 1) {
+			if (atoi(val) == 0) {
 				TRANS(MIN);
 			}
 		}
@@ -222,7 +235,9 @@ void StateFuncMin(char *ch)
 	char *param = &ch[0];
 	char *val = strchr(ch, '=');
 
-	printf("StateFuncMin:%s\n", ch);
+	if (*param != 'C') {
+		printf("StateFuncInit:%s\n", ch);
+	}
 
 	switch (*param) {
 	case 'E':	// Entry/Exit
@@ -244,7 +259,7 @@ void StateFuncMin(char *ch)
 	case 'T':	// Thermo
 		if (val != 0) {
 			val++;
-			if (atoi(val) == 0) {
+			if (atoi(val) == 1) {
 				TRANS(MID);
 			}
 		}
@@ -259,7 +274,9 @@ void StateFuncMid(char *ch)
 	char *param = &ch[0];
 	char *val = strchr(ch, '=');
 
-	printf("StateFuncMid:%s\n", ch);
+	if (*param != 'C') {
+		printf("StateFuncInit:%s\n", ch);
+	}
 
 	switch (*param) {
 	case 'E':	// Entry/Exit
@@ -271,6 +288,7 @@ void StateFuncMid(char *ch)
 		break;
 	case 'F':	// Fire
 		if (val != 0) {
+			val++;
 			if (strcmp(val, "off") == 0) {
 				TRANS(OFF);
 			}
@@ -281,7 +299,7 @@ void StateFuncMid(char *ch)
 	case 'T':	// Thermo
 		if (val != 0) {
 			val++;
-			if (atoi(val) == 1) {
+			if (atoi(val) == 0) {
 				TRANS(MIN);
 			}
 		}
@@ -296,7 +314,9 @@ void StateFuncOff(char *ch)
 	char *param = &ch[0];
 	char *val = strchr(ch, '=');
 
-	printf("StateFuncOff:%s\n", ch);
+	if (*param != 'C') {
+		printf("StateFuncInit:%s\n", ch);
+	}
 
 	switch (*param) {
 	case 'E':	// Entry/Exit
@@ -364,11 +384,18 @@ void *thread_server(void *ptr)
 	setsockopt(server_sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv));
 
 	server_len = sizeof(server_address);
-	bind(server_sockfd , (struct sockaddr *)&server_address , server_len);
+	if (bind(server_sockfd , (struct sockaddr *)&server_address , server_len) < 0) {
+		printf("bind failed\n");
+		return 0;
+	}
 
-	listen(server_sockfd, 5);
+	if (listen(server_sockfd, 5) < 0) {
+		printf("listen failed\n");
+		return 0;
+	}
 
 	char ch[BUF_LEN];
+	char resp[BUF_LEN];
 	int	len;
 	while(1) {
 		client_sockfd = accept(server_sockfd ,
@@ -376,7 +403,12 @@ void *thread_server(void *ptr)
 		if (client_sockfd != -1) {
 			len = read(client_sockfd, ch, sizeof(ch));
 			ch[len] = '\0';
-			StateTable[state](&ch[0]);
+			if (ch[0] != 'I') {
+				StateTable[state](&ch[0]);
+			} else {
+				sprintf(resp, "%d\n", state);
+				write(client_sockfd, resp, strlen(resp));
+			}
 			close(client_sockfd);
 		} else {
 			StateTable[state]("Click");
