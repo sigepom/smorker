@@ -325,6 +325,8 @@ void StateFuncOff(char *ch)
 			if (current_pos == target_pos) {
 				TRANS(INIT);
 			}
+			tv_finish.tv_sec = 0;
+			tv_finish.tv_usec = 0;
 		}
 		if (strcmp(param, "Exit") == 0) {
 		}
@@ -403,10 +405,22 @@ void *thread_server(void *ptr)
 		if (client_sockfd != -1) {
 			len = read(client_sockfd, ch, sizeof(ch));
 			ch[len] = '\0';
-			if (ch[0] != 'I') {
+			if (ch[0] != 'I') {		// Inquire
 				StateTable[state](&ch[0]);
 			} else {
-				sprintf(resp, "%d\n", state);
+				int	time_left = 0;
+				if (tv_finish.tv_sec) {
+					struct timeval	tv;
+					gettimeofday(&tv, 0);
+					time_left = tv_finish.tv_sec - tv.tv_sec;
+				}
+
+				sprintf(resp,
+					"{\"pos\":%d,\"thermo\":%d,\"time\":%d,\"state\":%d}",
+					current_pos,
+					current_thermo,
+					time_left,
+					state);
 				write(client_sockfd, resp, strlen(resp));
 			}
 			close(client_sockfd);
