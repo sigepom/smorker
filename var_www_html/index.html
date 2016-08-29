@@ -6,42 +6,21 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<title>薫製コントローラ</title>
 	</head>
-	<iframe name="dummy_frame" width=0 height=0 style="visibility:hidden">
-	</iframe>
-	<body>
-		<center>
-			<img src="http://192.168.11.4:8080/?action=stream"
-				alt="video"
-				border="1"
-				width="640" height="480">
-			<br>
-			<br>
-			<form action="/cgi-bin/fire.py" method="get" target="dummy_frame">
-				<input type="hidden" name="Fire" value="10" >
-				<input type="submit" style="background:url(start10.png);width:320px;height:110px;border:0px solid;background-size:cover" value="">
-			</form>
-			<form action="/cgi-bin/fire.py" method="get" target="dummy_frame">
-				<input type="hidden" name="Fire" value="15">
-				<input type="submit" style="background:url(start15.png);width:320px;height:110px;border:0px solid;background-size:cover;" value="">
-			</form>
-			<form action="/cgi-bin/fire.py" method="get" target="dummy_frame">
-				<input type="hidden" name="Fire" value="20">
-				<input type="submit" style="background:url(start20.png);width:320px;height:110px;border:0px solid;background-size:cover;" value="">
-			</form>
-			<br>
-			<form action="/cgi-bin/fire.py" method="get" target="dummy_frame">
-				<input type="hidden" name="Fire" value="off">
-				<input type="submit" style="background:url(stop.png);width:320px;height:110px;border:0px solid;background-size:cover;" value="">
-			</form>
-			<br>
-			<br>
-			<br>
-			<form action="/cgi-bin/fire.py" method="get" target="dummy_frame">
-				<input type="number" name="Adjust" value="0">
-				<input type="submit" value="調整">
-			</form>
-		</center>
-	</body>
+	<frameset rows="520,*">
+		<frameset cols="680,*">
+			<frame src="video.html" name="video" title="video">
+			<frame src="cgi-bin/inquire.py" name="status" title="status">
+
+			<noframes>
+				<body><div align=center><!--#geoguide--></div>
+					<h2>
+						このページはフレーム対応ブラウザでご覧ください。<br>
+					</h2>
+				</body>
+			</noframes>
+		</frameset>
+		<frame src="control.html" name="control" title="control">
+	</frameset>
 </html>
 
 

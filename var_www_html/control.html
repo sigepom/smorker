@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>control</title>
+	</head>
+	<iframe name="dummy_frame" width=0 height=0 style="visibility:hidden">
+	</iframe>
+	<body>
+		<center>
+			<form action="/cgi-bin/fire.py" method="get" target="dummy_frame">
+				<input type="hidden" name="Fire" value="10" >
+				<input type="submit" style="background:url(start10.png);width:320px;height:110px;border:0px solid;background-size:cover" value="">
+			</form>
+			<form action="/cgi-bin/fire.py" method="get" target="dummy_frame">
+				<input type="hidden" name="Fire" value="15">
+				<input type="submit" style="background:url(start15.png);width:320px;height:110px;border:0px solid;background-size:cover;" value="">
+			</form>
+			<form action="/cgi-bin/fire.py" method="get" target="dummy_frame">
+				<input type="hidden" name="Fire" value="20">
+				<input type="submit" style="background:url(start20.png);width:320px;height:110px;border:0px solid;background-size:cover;" value="">
+			</form>
+			<br>
+			<form action="/cgi-bin/fire.py" method="get" target="dummy_frame">
+				<input type="hidden" name="Fire" value="off">
+				<input type="submit" style="background:url(stop.png);width:320px;height:110px;border:0px solid;background-size:cover;" value="">
+			</form>
+			<br>
+			<br>
+			<br>
+			<form action="/cgi-bin/fire.py" method="get" target="dummy_frame">
+				<input type="number" name="Adjust" value="0">
+				<input type="submit" value="調整">
+			</form>
+		</center>
+	</body>
+</html>
+
+
