@@ -3,7 +3,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/time.h>
+#include <time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
@@ -408,18 +408,18 @@ void *thread_server(void *ptr)
 			if (ch[0] != 'I') {		// Inquire
 				StateTable[state](&ch[0]);
 			} else {
-				int	time_left = 0;
+				int	time_target = 0;
 				if (tv_finish.tv_sec) {
 					struct timeval	tv;
 					gettimeofday(&tv, 0);
-					time_left = tv_finish.tv_sec - tv.tv_sec;
+					time_target = tv_finish.tv_sec;
 				}
 
 				sprintf(resp,
 					"{\"pos\":%d,\"thermo\":%d,\"time\":%d,\"state\":%d}",
 					current_pos,
 					current_thermo,
-					time_left,
+					time_target,
 					state);
 				write(client_sockfd, resp, strlen(resp));
 			}

@@ -3,9 +3,9 @@
 		this.initialize.apply(this,arguments);
 	}
 	CountdownTimer.prototype={
-		initialize:function(elm,tl,mes) {
+		initialize:function(elm,tl) {
 			this.elem = document.getElementById(elm);
-			this.tl = new Date(new Date().getTime() + tl * 1000);
+			this.tl = new Date(tl * 1000);
 		},countDown:function(){
 			var timer = '';
 			var today = new Date();
@@ -24,7 +24,7 @@
 	function CDT(){
 	}
 	window.onload=function(){
-		var timer = new CountdownTimer('CDT',%remain_time%,'testes');
+		var timer = new CountdownTimer('CDT',%time_limit%);
 		timer.countDown();
 	}
 </script>
