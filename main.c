@@ -82,6 +82,7 @@ void *thread_gpio(void *ptr)
 	int	thermo = 0;
 	char	msg[32];
 
+	sleep(3);
 	prev = get_pos();	// get initial position
 
 	while (1) {
@@ -235,6 +236,8 @@ void StateFuncMin(char *ch)
 	char *param = &ch[0];
 	char *val = strchr(ch, '=');
 
+	struct timeval	tv;
+
 	if (*param != 'C') {
 		printf("StateFuncInit:%s\n", ch);
 	}
@@ -264,6 +267,12 @@ void StateFuncMin(char *ch)
 			}
 		}
 		break;
+	case 'C':	// Click
+		gettimeofday(&tv, 0);
+		if (tv_finish.tv_sec < tv.tv_sec) {
+			TRANS(OFF);
+		}
+		break;
 	default:
 		break;
 	}
@@ -273,6 +282,8 @@ void StateFuncMid(char *ch)
 {
 	char *param = &ch[0];
 	char *val = strchr(ch, '=');
+
+	struct timeval	tv;
 
 	if (*param != 'C') {
 		printf("StateFuncInit:%s\n", ch);
@@ -302,6 +313,12 @@ void StateFuncMid(char *ch)
 			if (atoi(val) == 0) {
 				TRANS(MIN);
 			}
+		}
+		break;
+	case 'C':	// Click
+		gettimeofday(&tv, 0);
+		if (tv_finish.tv_sec < tv.tv_sec) {
+			TRANS(OFF);
 		}
 		break;
 	default:
@@ -347,6 +364,8 @@ void StateFuncOff(char *ch)
 			}
 		}
 		break;
+	case 'C':	// Click
+		break;
 	default:
 		break;
 	}
@@ -366,6 +385,15 @@ void TRANS(State next) {
     state = next;
     StateTable[state]("Entry");
 }
+
+#define	LOG_STEP	5
+#define	LOG_LENGTH	(10 * 60 / LOG_STEP)	// 10 minutes
+struct timeval tv_log;
+struct {
+	time_t	tim;
+	int		degree;
+} thermo_log[LOG_LENGTH];
+int thermo_cnt = 0;
 
 void *thread_server(void *ptr)
 {
@@ -397,35 +425,64 @@ void *thread_server(void *ptr)
 	}
 
 	char ch[BUF_LEN];
-	char resp[BUF_LEN];
+	char resp[32 * 1024];
 	int	len;
 	while(1) {
 		client_sockfd = accept(server_sockfd ,
 			(struct sockaddr *)&client_address , &client_len);
 		if (client_sockfd != -1) {
+			int		i;
 			len = read(client_sockfd, ch, sizeof(ch));
 			ch[len] = '\0';
-			if (ch[0] != 'I') {		// Inquire
-				StateTable[state](&ch[0]);
-			} else {
-				int	time_target = 0;
-				if (tv_finish.tv_sec) {
-					struct timeval	tv;
-					gettimeofday(&tv, 0);
-					time_target = tv_finish.tv_sec;
-				}
-
+			printf("ch:%s\n", ch);
+			switch (ch[0]) {
+			case 'I':	// Inquire
 				sprintf(resp,
 					"{\"pos\":%d,\"thermo\":%d,\"time\":%d,\"state\":%d}",
 					current_pos,
 					current_thermo,
-					time_target,
+					tv_finish.tv_sec,
 					state);
 				write(client_sockfd, resp, strlen(resp));
+				break;
+			case 'L':	// Log
+				printf("Log:dump\n");
+				strcpy(resp, "{");
+				for (i = thermo_cnt; i < LOG_LENGTH; i++) {
+					sprintf(resp + strlen(resp),
+						"\"%ld\":%d,",
+						thermo_log[i].tim,
+						thermo_log[i].degree);
+				}
+				for (i = 0; i < thermo_cnt; i++) {
+					sprintf(resp + strlen(resp),
+						"\"%ld\":%d,",
+						thermo_log[i].tim,
+						thermo_log[i].degree);
+				}
+				resp[strlen(resp) - 1] = '}';
+				write(client_sockfd, resp, strlen(resp));
+				break;
+			default:
+				StateTable[state](&ch[0]);
+				break;
 			}
 			close(client_sockfd);
 		} else {
 			StateTable[state]("Click");
+
+			gettimeofday(&tv, 0);
+			printf("%ld > %ld\n", tv.tv_sec, tv_log.tv_sec);
+			if (tv.tv_sec > tv_log.tv_sec) {
+				thermo_log[thermo_cnt].tim = tv_log.tv_sec;
+				thermo_log[thermo_cnt].degree = tv.tv_sec % 100;
+				printf("{\"key%ld\",%d}",
+					thermo_log[thermo_cnt].tim,
+					thermo_log[thermo_cnt].degree);
+				thermo_cnt++;
+				thermo_cnt %= LOG_LENGTH;
+				tv_log.tv_sec += LOG_STEP;
+			}
 		}
 	}
 	return 0;
@@ -457,6 +514,17 @@ int main(void)
 
 	// init state machine
    	StateTable[state]("Entry");
+
+	// init log
+	gettimeofday(&tv_log, 0);
+	tv_log.tv_sec += LOG_STEP;
+	{
+		int		i;
+		for (i = 0; i < LOG_LENGTH; i++) {
+			thermo_log[i].tim = tv_log.tv_sec
+								+ (i - LOG_LENGTH) * LOG_STEP;
+		}
+	}
 
 	// kick threads
 	pthread_create( &thread1, NULL, thread_gpio, 0);
