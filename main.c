@@ -191,7 +191,7 @@ void StateFuncBoot(char *ch)
 	struct timeval	tv;
 
 	if (*param != 'C') {
-		printf("StateFuncInit:%s\n", ch);
+		printf("StateFuncBoot:%s\n", ch);
 	}
 
 	switch (*param) {
@@ -239,7 +239,7 @@ void StateFuncMin(char *ch)
 	struct timeval	tv;
 
 	if (*param != 'C') {
-		printf("StateFuncInit:%s\n", ch);
+		printf("StateFuncMin:%s\n", ch);
 	}
 
 	switch (*param) {
@@ -286,7 +286,7 @@ void StateFuncMid(char *ch)
 	struct timeval	tv;
 
 	if (*param != 'C') {
-		printf("StateFuncInit:%s\n", ch);
+		printf("StateFuncMid:%s\n", ch);
 	}
 
 	switch (*param) {
@@ -332,7 +332,7 @@ void StateFuncOff(char *ch)
 	char *val = strchr(ch, '=');
 
 	if (*param != 'C') {
-		printf("StateFuncInit:%s\n", ch);
+		printf("StateFuncOff:%s\n", ch);
 	}
 
 	switch (*param) {
@@ -434,7 +434,6 @@ void *thread_server(void *ptr)
 			int		i;
 			len = read(client_sockfd, ch, sizeof(ch));
 			ch[len] = '\0';
-			printf("ch:%s\n", ch);
 			switch (ch[0]) {
 			case 'I':	// Inquire
 				sprintf(resp,
@@ -446,7 +445,6 @@ void *thread_server(void *ptr)
 				write(client_sockfd, resp, strlen(resp));
 				break;
 			case 'L':	// Log
-				printf("Log:dump\n");
 				strcpy(resp, "{");
 				for (i = thermo_cnt; i < LOG_LENGTH; i++) {
 					sprintf(resp + strlen(resp),
@@ -469,20 +467,15 @@ void *thread_server(void *ptr)
 			}
 			close(client_sockfd);
 		} else {
-			StateTable[state]("Click");
-
 			gettimeofday(&tv, 0);
-			printf("%ld > %ld\n", tv.tv_sec, tv_log.tv_sec);
 			if (tv.tv_sec > tv_log.tv_sec) {
 				thermo_log[thermo_cnt].tim = tv_log.tv_sec;
 				thermo_log[thermo_cnt].degree = tv.tv_sec % 100;
-				printf("{\"key%ld\",%d}",
-					thermo_log[thermo_cnt].tim,
-					thermo_log[thermo_cnt].degree);
 				thermo_cnt++;
 				thermo_cnt %= LOG_LENGTH;
 				tv_log.tv_sec += LOG_STEP;
 			}
+                        StateTable[state]("Click");
 		}
 	}
 	return 0;
@@ -521,8 +514,7 @@ int main(void)
 	{
 		int		i;
 		for (i = 0; i < LOG_LENGTH; i++) {
-			thermo_log[i].tim = tv_log.tv_sec
-								+ (i - LOG_LENGTH) * LOG_STEP;
+			thermo_log[i].tim = tv_log.tv_sec + (i - LOG_LENGTH) * LOG_STEP;
 		}
 	}
 

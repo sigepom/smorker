@@ -34,10 +34,16 @@ print "<div id=\"graphdiv\"></div>"
 print "<script type=\"text/javascript\" src=\"../dygraph-combined.js\">"
 print "</script>"
 print "<script type=\"text/javascript\">"
-print "container = document.getElementById(\"graphdiv\");";
-print "g = new Dygraph(container,\"Time,Temperature\\n\"+";
+print "container = document.getElementById(\"graphdiv\");"
+print "g = new Dygraph(container,\"Time,Temperature\\n\"",
 for tim in jsonData.keys():
-	print str(tim)+","+str(jsonData[tim]);
+	print "+\"" + str(tim) + "," + str(jsonData[tim]) + "\\n\"",
+print ",{",
+print "labels: [\"Time\", \"Temperature\"],",
+print "xValueFormatter: Dygraph.dateString_, xValueParser: function(x) {return 1000*parseInt(x);}, xTicker: Dygraph.dateTicker,",
+#print "axes: {x: {axisLabelFormatter: function(d, gran) {var d=new Date(d.getTime()); return d.strftime(\"%H:00\");}}}",
+print "axes: {x: {axisLabelFormatter: function(d, gran) {var d=new Date(d.getTime()); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}}}",
+print "}",
 print ");"
 print "</script>"
 print "</body>"

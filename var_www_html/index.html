@@ -9,7 +9,10 @@
 	<frameset rows="520,*" frameborder="0">
 		<frameset cols="680,*" frameborder="0">
 			<frame src="video.html" name="video" title="video">
-			<frame src="cgi-bin/inquire.py" name="status" title="status">
+			<frameset rows="160,*" frameborder="0">
+				<frame src="cgi-bin/inquire.py" name="status" title="status">
+				<frame src="cgi-bin/graph.py" name="status" title="status">
+			</frameset>
 
 			<noframes>
 				<body><div align=center><!--#geoguide--></div>
